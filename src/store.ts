@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
+    Filter,
     Game,
     GameMetadata,
     PlayStatus,
@@ -45,6 +46,9 @@ interface BearState {
 
     selectedGame: Game | null;
     setSelectedGame: (game: Game | null) => void;
+
+    filter: Filter;
+    updateFilter: (filter: Partial<Filter>) => void;
 }
 
 const useAppStore = create<BearState>()(
@@ -166,6 +170,20 @@ const useAppStore = create<BearState>()(
                 setSelectedGame: (game: Game | null) => {
                     set({ selectedGame: game });
                 },
+
+                filter: {
+                    search: '',
+                    platform: null,
+                    storefront: null,
+                },
+                updateFilter: (filter) => {
+                    set((state) => ({
+                        filter: {
+                            ...state.filter,
+                            ...filter,
+                        },
+                    }));
+                },
             };
         },
         {
@@ -173,6 +191,7 @@ const useAppStore = create<BearState>()(
             partialize: (state) => ({
                 games: state.games,
                 gamesMetadata: state.gamesMetadata,
+                filter: state.filter,
             }),
             onRehydrateStorage: () => (state) => {
                 if (state) {

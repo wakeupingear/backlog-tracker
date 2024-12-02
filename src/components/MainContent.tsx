@@ -1,30 +1,14 @@
-import { useMemo, useState } from 'react';
-import useAppStore from '~/store';
 import SiteTitle from './SiteTitle';
 import { Filters } from './Filters';
 import NotePopup from './NotePopup';
 import { GameGrid } from './GameGrid';
 import Settings from './Settings';
-import { Platform, PlayStatus } from '~/types';
+import { PlayStatus } from '~/types';
 import AddGames from './AddGames';
+import useAppStore from '~/store';
 
 export default function MainContent() {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(
-        null
-    );
-
     const games = useAppStore((state) => state.games);
-    const platforms = useMemo(
-        () =>
-            Array.from(
-                new Set(
-                    games.flatMap((game) => game.sources.map((p) => p.platform))
-                )
-            ),
-        [games]
-    );
-
     if (!games.length)
         return (
             <main className="my-auto w-full h-full justify-center flex flex-col items-center gap-8 text-center">
@@ -43,13 +27,7 @@ export default function MainContent() {
             <SiteTitle />
             <div className="flex items-center gap-4 sticky top-0 z-20 bg-white py-4">
                 <div className="bg-white h-[3.75rem] absolute top-0 -left-4 -right-4 -z-[1]" />
-                <Filters
-                    searchTerm={searchTerm}
-                    platform={selectedPlatform}
-                    onSearchChange={setSearchTerm}
-                    onPlatformChange={setSelectedPlatform}
-                    platforms={platforms}
-                />
+                <Filters />
                 <Settings className="ml-auto" />
             </div>
             <NotePopup>

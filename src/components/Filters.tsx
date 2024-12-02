@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo, useTransition } from 'react';
 import { Input } from '~/components/ui/input';
-import { Platform } from '~/types';
+import { Platform, Storefront } from '~/types';
 import {
     Select,
     SelectContent,
@@ -8,43 +8,105 @@ import {
     SelectTrigger,
     SelectValue,
 } from '~/components/ui/select';
+import useAppStore from '~/store';
+import { STOREFRONT_METADATA } from '~/constants';
 
-interface FiltersProps {
-    searchTerm: string;
-    platform: Platform | null;
-    onSearchChange: (term: string) => void;
-    onPlatformChange: (platform: Platform) => void;
-    platforms: Platform[];
-}
+export const Filters: React.FC = () => {
+    const [isPending, startTransition] = useTransition();
 
-export const Filters: React.FC<FiltersProps> = ({
-    searchTerm,
-    platform,
-    onSearchChange,
-    onPlatformChange,
-    platforms,
-}) => {
-    if (!platforms.length) return null;
+    const filter = useAppStore((state) => state.filter);
+    const updateFilter = useAppStore((state) => state.updateFilter);
+    const games = useAppStore((state) => state.games);
+
+    const platforms = useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    games.flatMap((game) => game.sources.map((p) => p.platform))
+                )
+            ),
+        [games]
+    );
+
+    const storefronts = useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    games.flatMap((game) =>
+                        game.sources.map((p) => p.storefront)
+                    )
+                )
+            ),
+        [games]
+    );
 
     return (
         <div className="flex items-center gap-4 w-full">
-            <Input
-                type="text"
-                placeholder="Search games..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="flex-1 max-w-lg"
-            />
-            <Select value={platform || ''} onValueChange={onPlatformChange}>
+            <div className="relative flex-1 max-w-lg">
+                <Input
+                    type="text"
+                    placeholder="Search games..."
+                    value={filter.search}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        startTransition(() => {
+                            updateFilter({ search: value });
+                        });
+                    }}
+                    className={isPending ? 'opacity-70' : ''}
+                />
+            </div>
+
+            <Select
+                value={filter.platform || 'none'}
+                onValueChange={(platform) => {
+                    startTransition(() => {
+                        updateFilter({
+                            platform: (platform === 'none'
+                                ? null
+                                : platform) as Platform | null,
+                        });
+                    });
+                }}
+            >
                 <SelectTrigger className="w-fit">
-                    <SelectValue placeholder="All Platforms" />
+                    <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="none">All Platforms</SelectItem>
                     {platforms.map((p) => (
                         <SelectItem key={p} value={p}>
                             {p}
                         </SelectItem>
                     ))}
+                </SelectContent>
+            </Select>
+
+            <Select
+                value={filter.storefront || 'none'}
+                onValueChange={(storefront) => {
+                    startTransition(() => {
+                        updateFilter({
+                            storefront: (storefront === 'none'
+                                ? null
+                                : storefront) as Storefront | null,
+                        });
+                    });
+                }}
+            >
+                <SelectTrigger className="w-fit">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="none">All Storefronts</SelectItem>
+                    {storefronts.map((p) => {
+                        const { title, Icon } = STOREFRONT_METADATA[p];
+                        return (
+                            <SelectItem key={p} value={p}>
+                                <Icon size={16} className="inline" /> {title}
+                            </SelectItem>
+                        );
+                    })}
                 </SelectContent>
             </Select>
         </div>

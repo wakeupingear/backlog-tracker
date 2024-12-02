@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PlayStatus } from '../types';
 import useAppStore from '~/store';
 import { GAME_ASPECT_RATIO, PLAY_STATUS_METADATA } from '~/constants';
@@ -16,7 +16,26 @@ export interface GameGridProps {
 }
 
 export const GameGrid: React.FC<GameGridProps> = ({ playStatus }) => {
-    const games = useAppStore((state) => state.sortedGames)[playStatus];
+    const filter = useAppStore((state) => state.filter);
+    const _games = useAppStore((state) => state.sortedGames)[playStatus];
+    const games = useMemo(() => {
+        let games = _games;
+        if (filter.search)
+            games = games.filter((game) =>
+                game.name.toLowerCase().includes(filter.search.toLowerCase())
+            );
+        if (filter.platform)
+            games = games.filter((game) =>
+                game.sources.some((s) => s.platform === filter.platform)
+            );
+        if (filter.storefront)
+            games = games.filter((game) =>
+                game.sources.some((s) => s.storefront === filter.storefront)
+            );
+
+        return games;
+    }, [filter, _games]);
+
     const { width: _width } = useWindowSize();
     const width = _width - 32;
     const gridRef = React.useRef<HTMLDivElement | null>(null);

@@ -112,3 +112,9 @@ export interface GameMetadata {
 export type SavedMetadata = Record<string, GameMetadata>;
 
 export type SortedGames = Record<PlayStatus, Game[]>;
+
+export interface Filter {
+    search: string;
+    platform: Platform | null;
+    storefront: Storefront | null;
+}

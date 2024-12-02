@@ -18,7 +18,7 @@ export default function Footer() {
             <Separator orientation="vertical" className="h-6" />
             <p>
                 <a
-                    href="https://github.com/wakeupingear/what-do-i-play-next"
+                    href="https://github.com/wakeupingear/backlog-tracker"
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1"
